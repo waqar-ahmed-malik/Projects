@@ -1,3 +1,5 @@
 [user]
 	name = waqar-ahmed-malik
 	email = ahmedwaqar.maliks@gmail.com
+[credential]
+	helper = "!f() { /usr/local/airflow/.vscode-server/bin/8490d3dde47c57ba65ec40dd192d014fd2113496/node /tmp/vscode-remote-containers-ae09078a04788e1c41d0ed80e2ef025b4c17ed4c.js $*; }; f"

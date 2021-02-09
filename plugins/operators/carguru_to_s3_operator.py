@@ -41,7 +41,16 @@ class CarguruToS3Operator(BaseOperator):
         with open(file_name, 'w') as f:
             csv_writer = csv.DictWriter(f, fieldnames=field_names, delimiter=self.delimiter)
             csv_writer.writeheader()
-            csv_writer.writerows(stats)
+            for stat in stats:
+                row = {}
+                for key, value in stat.items():
+                    if isinstance(value, str):
+                        v = value.replace('\\n', ' ').replace('\\r', ' ').replace('\n', ' ').replace('\r', ' ').replace('\\', ' ').replace(self.delimiter, '_')
+                        row.__setitem__(key, v)
+                    else:
+                        row.__setitem__(key, value)
+
+                csv_writer.writerow(stat)
             
         s3_conn.load_file(file_name, self.s3_key, self.s3_bucket, True)
         os.remove(file_name)

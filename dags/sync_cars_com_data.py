@@ -42,7 +42,7 @@ with DAG('sync_cars_com_data', schedule_interval=schedule_interval, catchup=Fals
             api_key = 'YYbMasDZAxnKJ3ixd4qzVmykB6j6RFMg',
             date = "2021-02-07",
             customer_id = dealer['dealer_id'],
-            s3_key = 'temp/{}.csv'.format(dealer['dealer_id']),
+            s3_key = 'temp/cars.com/{}.csv'.format(dealer['dealer_id']),
             delimiter = ',',
             s3_bucket = 'lutherstrategy',
             trigger_rule="all_done"
@@ -53,7 +53,7 @@ with DAG('sync_cars_com_data', schedule_interval=schedule_interval, catchup=Fals
             task_id='sync_s3_{}'.format(''.join([char if char.isalpha() else '_' for char in dealer['dealer_name']])),
             s3_conn_id = 's3',
             s3_bucket = 'lutherstrategy',
-            s3_from_key = 'temp/{}.csv'.format(dealer['dealer_id']),
+            s3_from_key = 'temp/cars.com/{}.csv'.format(dealer['dealer_id']),
             s3_to_key = 'thirdparty/cars.com/{}/vehicle_details/data.parquet'.format(dealer['dealer_id']),
             delimiter = ',',
             trigger_rule="all_done"
@@ -65,7 +65,7 @@ with DAG('sync_cars_com_data', schedule_interval=schedule_interval, catchup=Fals
             landing_table = 'landing."views_cars_com"', 
             s3_conn_id = 's3',
             s3_bucket = 'lutherstrategy',
-            s3_file_key = 'thirdparty/cars.com/{}/vehicle_details/data.parquet'.format(dealer['dealer_id']),
+            s3_file_key = 'temp/cars.com/{}.csv'.format(dealer['dealer_id']),
             column_list = ['date_occurred', 'classifiedAdId', 'source', 'stockNumber', 'vehicleYear', 'date_entered', 'vehicleMake', 'vehicleModel', 'vin', 'stockType', 'vehicleStatus', 'listingPrice', 'numberOfPhotos', 'sellerNotes', 'currentAge', 'deletedAge', 'deletedLastLeadType', 'deletedLastLeadDateTime', 'srp', 'vdp', 'conversionRate', 'totalContacts'],
             source = 'cars.com',
             to_be_renamed = {
@@ -88,7 +88,7 @@ with DAG('sync_cars_com_data', schedule_interval=schedule_interval, catchup=Fals
         tasks.append(s3_to_s3)
         tasks.append(s3_to_postgres)
         tasks.append(landing_to_public)
-
+  
 
     end_node = DummyOperator(
         task_id='end',

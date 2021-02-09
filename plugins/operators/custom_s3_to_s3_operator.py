@@ -40,22 +40,23 @@ class CustomS3ToS3Operator(BaseOperator):
             existing_df = existing_table.to_pandas()
             current_s3_object = s3_conn.get_key(self.s3_from_key, self.s3_bucket).get()['Body'].read()
             current_data = io.BytesIO(current_s3_object) 
-            current_df = pd.read_csv(current_data)
+            current_df = pd.read_csv(current_data, sep=self.delimiter)
             final_df = existing_df.append(current_df)
         elif s3_conn.check_for_key(self.s3_from_key, self.s3_bucket) and not s3_conn.check_for_key(self.s3_to_key, self.s3_bucket):
             current_s3_object = s3_conn.get_key(self.s3_from_key, self.s3_bucket).get()['Body'].read()
             current_data = io.BytesIO(current_s3_object) 
-            final_df = pd.read_csv(current_data)
+            final_df = pd.read_csv(current_data, sep=self.delimiter)
 
         final_df = final_df.drop_duplicates(subset=self.key_column_list)
         final_df = final_df.loc[:,~final_df.columns.duplicated()]
         self.log.info("Existing: {} | Final: {}".format(existing_df['vin'].count(), final_df['vin'].count()))
         # self.log.info("Existing: {} | Final: {}".format(existing_df[self.key_column_list[0]].count(), final_df[self.key_column_list[0]].count()))
-        # final_df = final_df.astype(str)
+        final_df = final_df.astype(str)
         # parquet_file_path = os.path.join(os.path.dirname(__file__), 'file.parquet')
         parquet_file_path = os.path.join(os.path.dirname(__file__), 'file.parquet')
         table = pa.Table.from_pandas(final_df)
-        pq.write_table(table, parquet_file_path)   
+        pq.write_table(table, parquet_file_path)  
+        s3_conn = S3Hook(self.s3_conn_id) 
         s3_conn.load_file(
             parquet_file_path,
             self.s3_to_key,
